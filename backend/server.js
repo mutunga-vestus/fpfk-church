@@ -256,6 +256,11 @@ app.get('/api/content', async (req, res) => {
     const { rows } = await pool.query('SELECT page, data FROM content');
     const content = {};
     for (const row of rows) content[row.page] = row.data;
+    // Hide the homepage announcement once it has expired (admin can still re-date it).
+    const notice = content.home?.notice;
+    if (notice && (!notice.expiresAt || new Date(notice.expiresAt).getTime() <= Date.now())) {
+      content.home = { ...content.home, notice: {} };
+    }
     res.json(content);
   } catch (err) {
     console.error(err);

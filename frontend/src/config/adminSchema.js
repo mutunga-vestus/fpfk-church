@@ -19,12 +19,14 @@ export const adminSchema = {
        ],
       },
       {
-        key: 'posters', label: 'Posters (homepage slideshow)', type: 'posters',
+        key: 'posters', label: 'Posters (homepage cards, max 2)', type: 'posters',
         itemFields: [
           { key: 'image', label: 'Poster Image' },
           { key: 'title', label: 'Caption (optional)' },
         ],
       },
+      { key: 'supportPosts', label: 'Support Needs (homepage cards linking to Give, max 4)', type: 'support' },
+      { key: 'notice', label: 'Announcement (shows below Ministries, expires automatically)', type: 'notice' },
     ],
   },
   about: {

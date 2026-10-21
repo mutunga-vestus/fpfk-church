@@ -2,6 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
  
 // https://vite.dev/config/
+// Where the API lives. Outside Docker: localhost. Inside docker-compose: the "backend" service.
+const API_TARGET = process.env.VITE_PROXY_TARGET || 'http://localhost:4000'
+
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -13,11 +16,11 @@ export default defineConfig({
     ],
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: API_TARGET,
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'http://localhost:4000',
+        target: API_TARGET,
         changeOrigin: true,
       },
     },

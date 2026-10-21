@@ -1,4 +1,5 @@
 const BACKEND_URL = '';
+const MAX_POSTERS = 2;
 const BLANK = { image: '', title: '' };
 const label = 'block text-xs font-semibold uppercase tracking-wider text-brand-muted mb-1.5';
 const input = 'w-full px-3.5 py-2.5 bg-[#121212] border border-brand-border rounded-lg text-sm text-brand-fg placeholder:text-brand-muted/60 focus:outline-none focus:ring-2 focus:ring-brand/35 focus:border-brand transition';
@@ -34,11 +35,15 @@ export function buildPostersField(items, onChange, ui, setUi, uploadImage) {
       return;
     }
     if (editingIndex !== null) onChange(items.map((item, idx) => (idx === editingIndex ? draft : item)));
-    else onChange([...items, draft]);
+    else if (items.length >= MAX_POSTERS) {
+      setUi({ error: `Only ${MAX_POSTERS} posters allowed. Delete one first.` });
+      return;
+    } else onChange([...items, draft]);
     setUi({ draft: BLANK, editingIndex: null, error: '' });
   };
 
-  const form = (
+  const limitReached = items.length >= MAX_POSTERS && editingIndex === null;
+  const form = limitReached ? (<div className="rounded-xl border border-brand-border bg-[#0f0f0f] p-5 text-sm text-brand-muted">Maximum of {MAX_POSTERS} posters reached. Edit or delete one to add another.</div>) : (
     <div className="rounded-xl border border-brand-border bg-[#0f0f0f] p-5 sm:p-6 space-y-5">
       <h3 className="text-sm font-semibold text-brand-fg border-b border-brand-border pb-3">
         {editingIndex !== null ? 'Edit poster' : 'Add poster'}
@@ -55,7 +60,7 @@ export function buildPostersField(items, onChange, ui, setUi, uploadImage) {
           <label className="flex flex-col items-center justify-center flex-1 min-h-[96px] border border-dashed border-brand-border rounded-lg bg-[#121212] hover:border-brand/50 cursor-pointer px-3 py-4 transition">
             <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} className="sr-only" />
             <span className="text-sm text-brand-fg">{uploading ? 'Uploading…' : 'Upload poster'}</span>
-            <span className="text-xs text-brand-muted mt-1">Homepage slideshow</span>
+            <span className="text-xs text-brand-muted mt-1">Homepage card (max 2)</span>
           </label>
         </div>
       </div>
@@ -78,7 +83,7 @@ export function buildPostersField(items, onChange, ui, setUi, uploadImage) {
   const content =
     items.length > 0 ? (
       <div className="space-y-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-brand-muted">Posters ({items.length})</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-brand-muted">Posters ({items.length}/{MAX_POSTERS})</h3>
         <div className="overflow-x-auto rounded-xl border border-brand-border bg-[#0f0f0f]">
           <table className="w-full text-sm text-left min-w-[480px]">
             <thead>

@@ -5,6 +5,8 @@ import { adminSchema } from '../../config/adminSchema';
 import { buildEventsField } from './EventsManager';
 import { buildMinistriesField } from './MinistriesManager';
 import { buildPostersField } from './PostersManager';
+import { buildNoticeField } from './NoticeManager';
+import { buildSupportField } from './SupportManager';
 import { buildFeaturesField } from './FeaturesManager';
 import AdminMessages from './AdminMessages';
 import AdminGiving from './AdminGiving';
@@ -442,6 +444,44 @@ export default function AdminDashboard() {
             </div>
           );
         }
+        return;
+      }
+
+      if (field.type === 'support') {
+        const { form, content } = buildSupportField(
+          currentDraft[key] || [],
+          (items) => updateField(key, items),
+          getUi(key),
+          (patch) => setUi(key, patch),
+          uploadImage
+        );
+        formSections.push(
+          <div key={key}>
+            {label}
+            {form}
+          </div>
+        );
+        if (content) {
+          contentSections.push(
+            <div key={`${key}-content`}>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-brand-muted mb-2">
+                Current {field.label}
+              </label>
+              {content}
+            </div>
+          );
+        }
+        return;
+      }
+
+      if (field.type === 'notice') {
+        const { form } = buildNoticeField(currentDraft[key], (val) => updateField(key, val));
+        formSections.push(
+          <div key={key}>
+            {label}
+            {form}
+          </div>
+        );
         return;
       }
 

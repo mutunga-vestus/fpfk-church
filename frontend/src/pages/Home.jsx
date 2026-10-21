@@ -66,53 +66,105 @@ function MinistryCarousel({ items }) {
   );
 }
 
-function PosterCarousel({ items }) {
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-
-  useEffect(() => {
-    if (paused || items.length <= 1) return;
-    const id = setInterval(() => {
-      setIndex((i) => (i + 1) % items.length);
-    }, 5000);
-    return () => clearInterval(id);
-  }, [paused, items.length]);
-
-  if (!items || items.length === 0) return null;
+function PosterCards({ items }) {
+  const posters = (items || []).filter((p) => p && p.image).slice(0, 2);
+  if (posters.length === 0) return null;
 
   return (
-    <div
-      className="relative z-0 mt-10 md:mt-16 w-full h-[320px] md:h-[480px] bg-gray-900 overflow-hidden"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
-      {items.map((p, i) => (
-        <div
-          key={i}
-          className={`absolute inset-0 flex flex-col transition-opacity duration-[2000ms] ease-in-out ${
-            i === index ? 'opacity-100 z-10' : 'opacity-0 z-0'
-          }`}
-        >
-          {p.title && (
-            <div className="bg-gray-900 text-brand-fg text-center py-3 px-6">
-              <p className="text-lg md:text-2xl font-semibold">{p.title}</p>
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={() => {
-              window.location.href = `${BACKEND_URL}${p.image}`;
-            }}
-            className="flex-1 min-h-0 w-full focus:outline-none group"
-          >
-            <img
-              src={`${BACKEND_URL}${p.image}`}
-              alt={p.title || 'Poster'}
-              className="w-full h-full object-contain cursor-pointer transition group-hover:opacity-90"
-            />
-          </button>
+    <div className="relative z-0 bg-gray-900 py-8 md:py-12">
+      <div className="max-w-4xl mx-auto px-6">
+        <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-5 md:gap-6">
+          {posters.map((p, i) => (
+            <a
+              key={i}
+              href={`${BACKEND_URL}${p.image}`}
+              className="group flex flex-col w-fit max-w-full lg:max-w-[calc(50%-0.75rem)] rounded-2xl overflow-hidden border border-gray-800 bg-brand-dark shadow-lg hover:shadow-2xl transition-shadow"
+            >
+              {p.title && (
+                <div className="w-0 min-w-full bg-gray-900 px-4 py-3 text-center">
+                  <p className="text-base md:text-lg font-semibold text-brand-fg">{p.title}</p>
+                </div>
+              )}
+              <img
+                src={`${BACKEND_URL}${p.image}`}
+                alt={p.title || 'Poster'}
+                className="block w-auto h-auto max-w-full max-h-[440px] transition group-hover:opacity-90"
+              />
+            </a>
+          ))}
         </div>
-      ))}
+      </div>
+    </div>
+  );
+}
+
+function AnnouncementCard({ notice }) {
+  const [now, setNow] = useState(() => Date.now());
+
+  // Re-check every 30s so an open page hides the announcement when it expires.
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, []);
+
+  const message = notice?.message?.trim();
+  const expiresAt = notice?.expiresAt ? new Date(notice.expiresAt).getTime() : 0;
+  if (!message || !expiresAt || expiresAt <= now) return null;
+
+  return (
+    <div className="py-10 bg-gray-900">
+      <div className="max-w-3xl mx-auto px-6 flex justify-center">
+        <div className="relative inline-block max-w-xl">
+          <div className="rounded-2xl rounded-bl-sm bg-brand text-white px-5 py-4 shadow-lg">
+            <span className="inline-block mb-2 rounded-full bg-white/20 px-3 py-0.5 text-xs font-bold uppercase tracking-wider">
+              &#128226; Announcement
+            </span>
+            <p className="text-base md:text-lg leading-relaxed whitespace-pre-line">{message}</p>
+            <p className="mt-2 text-xs text-white/70">
+              Until {new Date(expiresAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+            </p>
+          </div>
+          <span className="absolute -bottom-2 left-4 h-4 w-4 rotate-45 bg-brand rounded-sm" aria-hidden="true" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SupportCards({ items }) {
+  const posts = (items || []).filter((p) => p && p.title && (p.method === 'till' ? p.till : p.account)).slice(0, 4);
+  if (posts.length === 0) return null;
+
+  return (
+    <div className="py-12 md:py-16 bg-gray-900">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl md:text-4xl font-bold mb-3 text-brand-fg">Support the Church</h2>
+          <p className="text-gray-400 text-lg">Partner with us in meeting these needs.</p>
+        </div>
+        <div className="flex flex-wrap justify-center gap-6">
+          {posts.map((p, i) => (
+            <Link
+              key={p.id || i}
+              to={`/give?project=${encodeURIComponent(p.id || i)}`}
+              className="group flex flex-col w-full sm:w-[calc(50%-0.75rem)] lg:w-[calc(33.333%-1rem)] max-w-sm rounded-2xl overflow-hidden border border-gray-800 bg-brand-dark shadow-lg hover:shadow-2xl hover:border-brand transition"
+            >
+              {p.image && (
+                <div className="bg-black/40 flex items-center justify-center">
+                  <img src={`${BACKEND_URL}${p.image}`} alt={p.title} className="block w-full h-auto max-h-64 object-contain" />
+                </div>
+              )}
+              <div className="flex flex-col flex-1 p-5">
+                <h3 className="text-xl font-semibold text-white mb-2">{p.title}</h3>
+                {p.desc && <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-line mb-4 line-clamp-4">{p.desc}</p>}
+                <span className="mt-auto inline-block font-semibold text-brand-light group-hover:underline underline-offset-4">
+                  Give towards this &rarr;
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -165,7 +217,7 @@ export default function Home() {
         </div>
       </div>
 
-      <PosterCarousel items={posters} />
+      <PosterCards items={posters} />
 
       <div className="py-16 md:py-20 bg-gray-900">
         <div className="max-w-6xl mx-auto px-6">
@@ -281,6 +333,10 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      <AnnouncementCard notice={content.home.notice} />
+
+      <SupportCards items={content.home.supportPosts} />
     </div>
   );
 }
